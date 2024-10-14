@@ -1,5 +1,12 @@
 # WSL2
-记录配置主机的过程，windows主机利用WSL2配置Linux环境，实现MacOS远程访问主机Linux系统
+记录配置主机的过程，windows主机利用WSL2配置Linux和miniconda，实现MacOS远程访问主机Linux系统。
+
+主要目标：
+
+1.在台式主机上利用WSL配置linux系统，并安装编程环境。（步骤1-6）
+
+2.能够从MacOS访问Ubuntu，调用主机的GPU资源。（步骤7-）
+> 具体原理也不是很懂，能成功就行。🙏
 
 ## 写在前面
 Windows主机记为Server，MacOS笔记本记为Client。
@@ -290,10 +297,118 @@ sudo service ssh status
 ### 7.2 在Client安装SSH
 若是Windows系统就和Server一样，若是MacOS系统不需要安装。
 
-## 8. 
+## 8. 实现Server上WSL与Client间SSH连接的建立
+这里就开始玄起来了，因为和网络通信IP什么相关，具体不懂，就靠试。
+
+ustc目前的网络环境比较复杂，进过不完成尝试下来可行的是Client连接eduroam，Server连接20元/月的ustcnet国际版（国内版不行）。
+
+其他失败尝试：
+
+1. 两台电脑都连接eduroam（原因不明）
+
+2. 两台电脑都连接ustcnet（原因：ustcnet不能登陆多个设备）
+
+### 8.1 在Server上对SSH进行配置
+
+在```Ubuntu```运行：
+```Ubuntu
+sudo vi /etc/ssh/sshd_config
+```
+输入密码打开配置文件，文件中很多行以```#```开始，找到对应的行，将```#```删除并进行修改。
+将文件修改为：
+```Ubuntu
+# 端口默认是22，可以改为指定的端口，此处我们改成8989
+Port 8989
+ListenAddress 0.0.0.0
+HostKey /etc/ssh/ssh_host_rsa_key
+HostKey /etc/ssh/ssh_host_ecdsa_key
+HostKey /etc/ssh/ssh_host_ed25519_key
+
+PasswordAuthentication yes
+PermitRootLogin yes
+```
+重启SSH服务：
+```Ubuntu
+sudo service ssh restart
+```
+
+### 8.2 在Server上设置端口转发
+下面在Server上添加端口转发规则，完成将Server的端口到其内部WSL的端口的映射。
+
+在```Ubuntu```输入以下命令获取WSL2的IP，将其记为WSL_IP：
+```Ubuntu
+ifconfig
+```
+> 如果提示报错，是没有安装```net-tools```，根据提示安装。
+输出中eth0-inet后就是WSL_IP
+
+![image](https://github.com/user-attachments/assets/b6ba3ffe-2982-46a6-befb-20dbe28f1d7d)
+
+然后在Server**以管理员身份打开PowerShell**，为WSL2添加端口转发规则：
+```管理员：PowerShell
+# 添加端口转发规则，把WSL_IP替换成你WSL中ifconfig查找到的的IP。
+netsh interface portproxy add v4tov4 listenport=8989 listenaddress=0.0.0.0 connectport=8989 connectaddress=<WSL_IP>
+# listenport=<port1> 是指其他机器连接到本机所用的端口，本文章中设置为22
+# connectport=<port2> 是指本机连接到本机wsl2所用的端口，本文章中设置为8989
+# 格式如下：
+# netsh interface portproxy set v4tov4 listenport=<port1> connectport=<port2> connectaddress=127.0.0.1
+netsh interface portproxy set v4tov4 listenport=22 connectport=8989 connectaddress=127.0.0.1
+# 查看端口转发列表，检查刚刚有无设置成功
+netsh interface portproxy show all
+```
+输出如下图就设定成功了。
+
+![image](https://github.com/user-attachments/assets/d9999403-602c-4224-a147-d1aa8c5a0c07)
+
+### 8.3 在Server上设置防火墙入站规则
+在Server上以**管理员身份打开Windows Powershell输入**：
+```管理员：PowerShell
+# name可以自己起，localport是上一步中设置的listenport/<port1>
+# 也即是其他机器连接到本机所用的端口，本文章中设置为22
+# 我参考的教程只设置了22，我设置了22和8989两条才能成功。
+netsh advfirewall firewall add rule name="WSL2" dir=in action=allow protocol=TCP localport=22
+netsh advfirewall firewall add rule name="workshop" dir=in action=allow protocol=TCP localport=8989
+```
+
+### 8.4 重启WSL和SSH
+
+在```Powershell```输入：
+
+```Powershell
+# 关闭
+wsl --shutdown
+# 启动
+wsl
+```
+
+然后进入```Ubuntu```，重启SSH服务：
+
+```Ubuntu
+sudo service ssh restart
+```
+
+### 8.5 网络联通性检查
+
+#### 8.5.1 检查Server和Client之间网络的连通性
+
+在Server的```Powershell```获取IP，记为Server_IP：
+```Powershell
+ipconfig
+```
+图中“无线局域网适配器WLAN”-“IPv4地址”对应的就是Server_IP。
+![image](https://github.com/user-attachments/assets/1398dbde-4c61-44bd-9407-c2c5e1bee1fc)
+
+接下来，在Client上面打开终端（MacOS打开终端，Win打开PowerShell），输入以下命令来检查Client与Server之间的网络连通性：
+```Powershell
+ping <Server_IP>
+```
+> 这时候测试需要把Server的防火墙全关了，不然ping失败。
 
 
+ping成功如图。
+![image](https://github.com/user-attachments/assets/303ee494-c1c6-4e9f-93e1-861159481906)
 
-
+ping失败如图。
+![image](https://github.com/user-attachments/assets/480f33f7-6df3-4c49-a0c2-a5582d715e9c)
 
 
