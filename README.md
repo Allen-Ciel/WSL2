@@ -125,6 +125,8 @@ nvidia-smi
 
 ![image](https://github.com/user-attachments/assets/de16967a-5c50-4f99-90b7-325004b10623)
 
+若报错则根据提示安装内容，选择了：```sudo apt install nvidia-utils-535```
+
 
 ## 4. Ubuntu安装CUDA-WSL专属驱动
 
@@ -256,6 +258,8 @@ import torch
 torch.cuda.is_available()
 ```
 若输出```True```则表示成功，输入```exit()```可以退出python编程。
+
+> 这里遇到一个诡异的bug，清华源的没有我要的Pytorch，把版本退成cpu的了，网上有很多解决方法。
 
 ## 6. 使用PyCharm连接并测试
 
