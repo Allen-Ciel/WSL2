@@ -267,8 +267,33 @@ torch.cuda.is_available()
 
 ### 7.1 在Server安装SSH
 #### 7.1.1 在Server内部的WSL安装SSH
-
+需要先卸载再重装。
 
 打开```Ubuntu```命令行界面，输入：
+```Ubuntu
+sudo apt remove openssh-server
+sudo apt-get update
+sudo apt-get install openssh-server
+```
+安装好之后确保ssh在运行，输入：
+```Ubuntu
+sudo service ssh status
+```
+![image](https://github.com/user-attachments/assets/9cf52d90-f20b-4858-8219-c18b378170c5)
+
+#### 7.1.2 在Server安装SSH
+
+“设置”-搜索栏输入“可选”-下拉框选择“添加可选功能”-点击“添加功能”
+
+添加OpenSSH
+
+### 7.2 在Client安装SSH
+若是Windows系统就和Server一样，若是MacOS系统不需要安装。
+
+## 8. 
+
+
+
+
 
 
