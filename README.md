@@ -5,7 +5,7 @@
 
 1.在台式主机上利用WSL配置linux系统，并安装编程环境。（步骤1-6）
 
-2.能够从MacOS访问Ubuntu，调用主机的GPU资源。（步骤7-）
+2.能够从MacOS访问Ubuntu，调用主机的GPU资源。（步骤7-9）
 > 具体原理也不是很懂，能成功就行。🙏
 
 ## 写在前面
@@ -411,4 +411,36 @@ ping成功如图。
 ping失败如图。
 ![image](https://github.com/user-attachments/assets/480f33f7-6df3-4c49-a0c2-a5582d715e9c)
 
+> 如果防火墙关闭之后还是ping失败，请回8查看网络配置。
 
+### 8.5.2 检查Server上宿主机与WSL之间网络的连通性
+在Server上的```Powershell```输入以下命令检查其与内部WSL间网络的连通性
+```Powershell
+# 注意此处<port2>指的是sshd_config中开放的端口,即前文设置的8989
+# id为Server中安装的WSL时设置的用户名
+ssh <id>@<WSL_IP> -p <port2>
+# 连接成功则无问题，连接失败可尝试重启甚至重装WSL2的SSH服务
+```
+
+### 8.5.3 检查Server上WSL与外部网络之间的连通性
+在Server上打开```Ubuntu```，输入：
+```Ubuntu
+ping baidu.com
+```
+
+## 9. 远程连接
+在Client打开终端（若Win打开PowerShell），输入以下命令来尝试远程连接：
+```
+# id为Server中安装的WSL时设置的用户名
+# SERVER_IP即为前文中在Server的Windows Powershell中输入ipconfig获得的IP
+# port2即为前面在进行WSL的SSH配置时选定的端口，在本文中为8989
+ssh <id>@<SERVER_IP> -p <port2>
+```
+根据提示输入密码。
+
+然后就连接成功了！🎉
+
+## 写在后面
+配置到这里差不多成功了，还有几个待验证的事项，Server的IP是否会变动，Server重启是否能自动连接ustcnet。
+
+还有一些可有可无的配置，在WSL安装🪜，把Server的自动熄屏和休眠关了。
