@@ -1,0 +1,2 @@
+# WSL2
+记录配置主机的过程，windows主机利用WSL2配置Linux环境，实现MacOS远程访问主机Linux系统
