@@ -220,6 +220,23 @@ unset __conda_setup
 
 具体方法见[网站](https://blog.csdn.net/hxj0323/article/details/109223578)
 
+在```Ubuntu```运行命令：
+```Ubuntu
+sudo vim ~/.condarc
+```
+打开```~/.condarc```文件，若没有该文件会自动创建。
+
+将[清华镜像站](https://mirrors.tuna.tsinghua.edu.cn/help/anaconda/)里的内容复制到```~/.condarc```文件。
+
+之后运行命令清除conda缓存：
+```Ubuntu
+conda clean -i
+```
+再运行命令查看conda配置：
+```Ubuntu
+conda config --show
+```
+
 ### 5.4 测试
 
 利用```pytorch```测试是否能正常调用```CUDA```，先安装能调用```CUDA```的```Pytorch```，然后在```Ubuntu```运行命令：
@@ -237,6 +254,21 @@ torch.cuda.is_available()
 
 ### 6.1 在PyCharm中添加WSL解释器
 
-### 6.2 
+### 6.2 测试
+
+在下方```python```控制台测试，输入：
+```python
+import torch
+torch.cuda.is_available()
+```
+若输出```True```则表示成功。
+
+## 7. 安装SSH
+
+### 7.1 在Server安装SSH
+#### 7.1.1 在Server内部的WSL安装SSH
+
+
+打开```Ubuntu```命令行界面，输入：
 
 
