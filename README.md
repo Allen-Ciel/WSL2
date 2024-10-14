@@ -44,6 +44,17 @@ wsl --install -d Ubuntu-22.04
 
 重复1.3操作。
 
+### 1.5 启动```Ubuntu```
+
+方法一：在```PowerShell```，输入：
+```PowerShell
+wsl
+```
+
+方法二：在```Windows PowerShell```界面上方工具栏点击向下箭头选择```Ubuntu```
+
+<img width="600" alt="image" src="https://github.com/user-attachments/assets/5ac4e3fc-b0f2-4f3e-ba7a-394e5f94e819">
+
 ## 2. 将```WSL2```迁出到其他盘
 
 WSL默认安装在系统盘中，若需迁移则执行以下步骤。
@@ -103,5 +114,129 @@ ubuntu2204 config --default-user {username}
 ```Ubuntu
 nvidia-smi
 ```
+若显示GPU信息则表示不需要额外安装驱动。
+
+![image](https://github.com/user-attachments/assets/de16967a-5c50-4f99-90b7-325004b10623)
+
+
+## 4. Ubuntu安装CUDA-WSL专属驱动
+
+### 4.1 获取安装命令
+
+在[官网](https://developer.nvidia.cn/cuda-downloads?target_os=Linux&target_arch=x86_64&Distribution=WSL-Ubuntu&target_version=2.0&target_type=deb_local)获取安装命令：
+
+
+![image](https://github.com/user-attachments/assets/0a439178-8f54-49e2-9541-9d4adfa8fc97)
+
+选择好之后页面下拉会出现安装代码：
+
+![image](https://github.com/user-attachments/assets/cdb486d6-821f-478c-8eb7-c92d07887d8a)
+
+
+
+### 4.2 运行安装代码
+
+在```Ubuntu```中运行安装代码：
+```Ubuntu
+wget https://developer.download.nvidia.com/compute/cuda/repos/wsl-ubuntu/x86_64/cuda-wsl-ubuntu.pin
+sudo mv cuda-wsl-ubuntu.pin /etc/apt/preferences.d/cuda-repository-pin-600
+wget https://developer.download.nvidia.com/compute/cuda/12.4.1/local_installers/cuda-repo-wsl-ubuntu-12-4-local_12.4.1-1_amd64.deb
+sudo dpkg -i cuda-repo-wsl-ubuntu-12-4-local_12.4.1-1_amd64.deb
+sudo cp /var/cuda-repo-wsl-ubuntu-12-4-local/cuda-*-keyring.gpg /usr/share/keyrings/
+sudo apt-get update
+sudo apt-get -y install cuda-toolkit-12-4
+```
+> 其中倒数第三行代码*号具体是什么请参考倒数第四行代码的输出提醒。
+
+### 4.3 将cuda加入环境变量
+
+在```Ubuntu```运行：
+```Ubuntu
+vim ~/.bashrc
+```
+按```i```进入编辑模式，加入以下内容：
+```Ubuntu
+# cuda
+export CUDA_HOME=/usr/local/cuda
+export PATH=${CUDA_HOME}/bin:$PATH
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${CUDA_HOME}/lib64
+```
+修改完成按```esc```退出编辑模式，按```:wq```保存退出，在```Ubuntu```运行更新：
+```Ubuntu
+source ~/.bashrc
+```
+### 4.4 使用查看cuda信息
+在```Ubuntu```运行：
+```Ubuntu
+nvcc -V
+```
+可以看到CUDA信息即可
+
+![image](https://github.com/user-attachments/assets/02ec5a98-9a8b-469a-8a72-7e3637c4cfae)
+
+## 5. 安装miniconda并测试
+### 5.1 下载miniconda
+
+从[清华镜像站](https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/?C=M&O=A)进行下载，在```Ubuntu```运行命令：
+```Ubuntu
+wget -c https://mirrors.tuna.tsinghua.edu.cn/anaconda/miniconda/Miniconda3-py39_4.10.3-Linux-x86_64.sh
+```
+### 5.2 安装miniconda
+
+在```Ubuntu```运行命令：
+```Ubuntu
+sh Miniconda3-py39_4.10.3-Linux-x86_64.sh
+```
+根据提示，先回车，再一直回车看完一堆英文，直到提示输入yes，然后选择安装路径，回车就安装在默认路径上，最后安装好根据提示输入yes初始化。
+
+安装之后重启Ubuntu，如果是powershell就运行```wsl --shutdown```,或者把界面叉掉重新打开。
+
+重启之后就可以看到前面多了```(base)```
+
+检查conda环境变量，在```Ubuntu```运行命令：
+```Ubuntu
+vim ~/.bashrc
+```
+划到最后看是否有以下内容：
+
+```
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$(<conda 安装路径>/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "<conda 安装路径>/etc/profile.d/conda.sh" ]; then
+        . "<conda 安装路径>/etc/profile.d/conda.sh"
+    else
+        export PATH="<conda 安装路径>/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<
+```
+
+### 5.3 切换conda镜像源
+
+具体方法见[网站](https://blog.csdn.net/hxj0323/article/details/109223578)
+
+### 5.4 测试
+
+利用```pytorch```测试是否能正常调用```CUDA```，先安装能调用```CUDA```的```Pytorch```，然后在```Ubuntu```运行命令：
+```Ubuntu
+python
+```
+进入python编程环境，再输入：
+```python
+import torch
+torch.cuda.is_available()
+```
+若输出```True```则表示成功，输入```exit()```可以退出python编程。
+
+## 6. 使用PyCharm连接并测试
+
+### 6.1 在PyCharm中添加WSL解释器
+
+### 6.2 
 
 
