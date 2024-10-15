@@ -1,5 +1,5 @@
 # WSL2
-记录配置主机的过程，windows主机利用WSL2配置Linux和miniconda，实现MacOS远程访问主机Linux系统。
+记录配置主机的过程，windows主机利用WSL2配置Linux和miniconda，实现MacOS远程访问主机Linux系统。（Win也能用）
 
 主要目标：
 
@@ -7,6 +7,10 @@
 
 2.能够从MacOS访问Ubuntu，调用主机的GPU资源。（步骤7-9）
 > 具体原理也不是很懂，能成功就行。🙏
+
+[参考博客1](https://blog.csdn.net/hxj0323/article/details/122026317)主要实现目标1
+
+[参考博客2](https://blog.csdn.net/weixin_51053484/article/details/140459781?utm_medium=distribute.pc_relevant.none-task-blog-2~default~baidujs_baidulandingword~default-1-140459781-blog-122026317.235)主要实现目标2
 
 ## 写在前面
 Windows主机记为Server，MacOS笔记本记为Client。
@@ -125,7 +129,7 @@ nvidia-smi
 
 ![image](https://github.com/user-attachments/assets/de16967a-5c50-4f99-90b7-325004b10623)
 
-若报错则根据提示安装内容，选择了：```sudo apt install nvidia-utils-535```
+> 若报错则根据提示安装内容，选择了：```sudo apt install nvidia-utils-535```
 
 
 ## 4. Ubuntu安装CUDA-WSL专属驱动
@@ -198,9 +202,9 @@ sh Miniconda3-py39_4.10.3-Linux-x86_64.sh
 ```
 根据提示，先回车，再一直回车看完一堆英文，直到提示输入yes，然后选择安装路径，回车就安装在默认路径上，最后安装好根据提示输入yes初始化。
 
-安装之后重启Ubuntu，如果是powershell就运行```wsl --shutdown```,或者把界面叉掉重新打开。
+安装之后重启Ubuntu，如果是powershell就运行```wsl --shutdown```，或者把界面叉掉重新打开。
 
-重启之后就可以看到前面多了```(base)```
+重启之后就可以看到前面多了```(base)```，之后就可以进行创建虚拟环境等操作。
 
 检查conda环境变量，在```Ubuntu```运行命令：
 ```Ubuntu
@@ -265,9 +269,11 @@ torch.cuda.is_available()
 
 ### 6.1 在PyCharm中添加WSL解释器
 
+在Server的PyCharm中添加WSL解释器，Pycharm右下角-“添加新的解释器”-选择“WSL”
+
 ### 6.2 测试
 
-在下方```python```控制台测试，输入：
+在下方```python控制台```测试，输入：
 ```python
 import torch
 torch.cuda.is_available()
@@ -282,19 +288,23 @@ torch.cuda.is_available()
 
 打开```Ubuntu```命令行界面，输入：
 ```Ubuntu
+# 卸载
 sudo apt remove openssh-server
+# 更新
 sudo apt-get update
+# 安装
 sudo apt-get install openssh-server
 ```
 安装好之后确保ssh在运行，输入：
 ```Ubuntu
 sudo service ssh status
 ```
+有绿色的```running```即可
 ![image](https://github.com/user-attachments/assets/9cf52d90-f20b-4858-8219-c18b378170c5)
 
 #### 7.1.2 在Server安装SSH
 
-“设置”-搜索栏输入“可选”-下拉框选择“添加可选功能”-点击“添加功能”
+在Server“设置”-搜索栏输入“可选”-下拉框选择“添加可选功能”-点击“添加功能”
 
 添加OpenSSH
 
@@ -304,7 +314,7 @@ sudo service ssh status
 ## 8. 实现Server上WSL与Client间SSH连接的建立
 这里就开始玄起来了，因为和网络通信IP什么相关，具体不懂，就靠试。
 
-ustc目前的网络环境比较复杂，进过不完成尝试下来可行的是Client连接eduroam，Server连接20元/月的ustcnet国际版（国内版不行）。
+ustc目前的网络环境比较复杂，经过不完全尝试得知，可行的是Client连接eduroam或者其他网络连接校园vpn（ustc校园vpn见另一个项目），Server连接20元/月的ustcnet国际版（国内版不行）。
 
 其他失败尝试：
 
@@ -319,6 +329,7 @@ ustc目前的网络环境比较复杂，进过不完成尝试下来可行的是C
 sudo vi /etc/ssh/sshd_config
 ```
 输入密码打开配置文件，文件中很多行以```#```开始，找到对应的行，将```#```删除并进行修改。
+
 将文件修改为：
 ```Ubuntu
 # 端口默认是22，可以改为指定的端口，此处我们改成8989
@@ -337,6 +348,9 @@ sudo service ssh restart
 ```
 
 ### 8.2 在Server上设置端口转发
+
+> 原理不太懂，根据教程和尝试确实可行。
+
 下面在Server上添加端口转发规则，完成将Server的端口到其内部WSL的端口的映射。
 
 在```Ubuntu```输入以下命令获取WSL2的IP，将其记为WSL_IP：
@@ -406,7 +420,7 @@ ipconfig
 ```Powershell
 ping <Server_IP>
 ```
-> 这时候测试需要把Server的防火墙全关了，不然ping失败。
+> 这时候测试需要把Server的防火墙全关了，不然ping失败。测试之后还是开启防火墙，8.3已经设置了防火墙入站规则。
 
 
 ping成功如图。
