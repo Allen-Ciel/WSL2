@@ -458,7 +458,34 @@ ssh <id>@<SERVER_IP> -p <port2>
 
 然后就连接成功了！🎉
 
+## 10. 一些其他配置
+### 10.1 免密码ssh登陆
+[方法参考](https://zhuanlan.zhihu.com/p/64877558)
+
+1.生成RSA密钥和公钥
+在Client打开终端，先查看是否之前已经生成过RSA密钥和公钥（我之前配置GitHub已经生成过）。
+```
+ls -a
+cd .ssh
+ls
+```
+
+查看隐藏文件是否有```.ssh```，若有则进入文件查看是否有文件```id_rsa```和```id_rsa.pub```，若有则进入下一步。若没有则输入
+```
+ssh-keygen -t rsa
+```
+会生成RSA密钥和公钥。
+
+2. 将SSH公钥上传到服务器
+```
+ssh-copy-id 用户名@服务器地址
+```
+![image](https://github.com/user-attachments/assets/80a9d075-1a48-4e22-aa29-b7e6a86087fd)
+
+按照提示输入一次密码就ok。
 ## 写在后面
 配置到这里差不多成功了，还有几个待验证的事项，Server的IP是否会变动，Server重启是否能自动连接ustcnet。
 
 还有一些可有可无的配置，在WSL安装🪜，把Server的自动熄屏和休眠关了。
+
+
